@@ -1,0 +1,10 @@
+{
+  "name": "passos-magicos-bot",
+  "version": "1.0.0",
+  "description": "Bot assistente da Passos Mágicos — Datathon FIAP",
+  "private": true,
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {}
+}

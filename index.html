@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bia · Assistente Psicopedagógica — Passos Mágicos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pm: {
+              dark:   '#0f3460',
+              mid:    '#16213e',
+              accent: '#e94560',
+              light:  '#a8dadc',
+              card:   '#1a1a2e',
+            }
+          },
+          animation: {
+            'fade-in':   'fadeIn 0.3s ease-out',
+            'slide-up':  'slideUp 0.3s ease-out',
+            'pulse-dot': 'pulseDot 1.4s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn:   { from: { opacity: '0' }, to: { opacity: '1' } },
+            slideUp:  { from: { transform: 'translateY(12px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
+            pulseDot: { '0%,80%,100%': { transform: 'scale(0)' }, '40%': { transform: 'scale(1)' } },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%); }
+    .chat-container  { height: calc(100vh - 220px); }
+    .user-bubble     { background: linear-gradient(135deg, #e94560, #c0392b); }
+    .bot-bubble      { background: linear-gradient(135deg, #1e3a5f, #16213e); border: 1px solid rgba(168,218,220,0.2); }
+    .typing-dot      { width: 8px; height: 8px; background: #a8dadc; border-radius: 50%; display: inline-block; animation: pulseDot 1.4s ease-in-out infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    ::-webkit-scrollbar       { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(168,218,220,0.3); border-radius: 2px; }
+    .markdown-content ul      { list-style: disc; padding-left: 1.2rem; }
+    .markdown-content li      { margin-bottom: 0.25rem; }
+    .markdown-content strong  { color: #a8dadc; }
+    .markdown-content h3      { color: #e94560; font-weight: 700; margin: 0.5rem 0 0.25rem; }
+    .markdown-content code    { background: rgba(255,255,255,0.1); padding: 0 4px; border-radius: 3px; font-size: 0.8em; }
+    .send-btn:disabled        { opacity: 0.45; cursor: not-allowed; }
+    .status-dot               { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .error-toast { animation: slideUp 0.3s ease-out; }
+  </style>
+</head>
+<body class="min-h-screen text-white font-sans">
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  <header class="px-4 pt-5 pb-3 text-center">
+    <div class="flex items-center justify-center gap-3 mb-1">
+      <div class="relative">
+        <span class="text-4xl">🌟</span>
+      </div>
+      <div class="text-left">
+        <h1 class="text-xl font-bold text-white leading-tight">Passos Mágicos</h1>
+        <div class="flex items-center gap-2 mt-0.5">
+          <span class="text-pm-light text-sm font-medium">Bia · Assistente Psicopedagógica</span>
+          <span class="status-dot"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ Chat Window ══════════════════════════════════════════════════════════ -->
+  <div class="max-w-2xl mx-auto px-4">
+    <div id="chat"
+      class="chat-container overflow-y-auto flex flex-col gap-3 py-3 pr-1">
+    </div>
+  </div>
+
+  <!-- ══ Error Toast ═══════════════════════════════════════════════════════════ -->
+  <div id="error-toast"
+    class="hidden error-toast fixed top-4 left-1/2 -translate-x-1/2 z-50
+           bg-red-900/90 border border-red-500/50 text-red-200 text-xs
+           px-4 py-2 rounded-xl backdrop-blur max-w-xs text-center">
+  </div>
+
+  <!-- ══ Input Bar ════════════════════════════════════════════════════════════ -->
+  <div class="fixed bottom-0 inset-x-0 pb-safe">
+    <div class="max-w-2xl mx-auto px-4 pb-4 pt-2"
+         style="background: linear-gradient(to top, #0f3460 70%, transparent)">
+
+      <!-- Quick prompts -->
+      <div id="quick-prompts" class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar"></div>
+
+      <!-- Input row -->
+      <div class="flex gap-2 items-end">
+        <div class="flex-1 bg-pm-card/70 backdrop-blur border border-pm-light/20 rounded-2xl overflow-hidden">
+          <textarea id="msg-input"
+            rows="1"
+            placeholder="Digite sua mensagem..."
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+            class="w-full bg-transparent text-white text-sm px-4 py-3 resize-none outline-none
+                   placeholder-pm-light/40 leading-relaxed"
+            style="max-height: 120px"></textarea>
+        </div>
+        <button id="send-btn"
+          onclick="sendMessage()"
+          class="send-btn bg-pm-accent hover:bg-red-600 active:scale-95 text-white
+                 rounded-2xl p-3 transition-all duration-150 flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-center text-xs text-pm-light/35 mt-2">
+        Bia é uma assistente virtual · Não substitui atendimento presencial
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ Script ═══════════════════════════════════════════════════════════════ -->
+  <script>
+  // Identificador único da sessão — gerado uma vez por carregamento de página
+  const SESSION_ID = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+
+  const QUICK_PROMPTS = [
+    'O que é o INDE e as Pedras?',
+    'Quais programas de inglês existem?',
+    'Como funciona o Ponto de Virada?',
+    'Não sei meu RA, como consigo?',
+  ];
+
+  const WELCOME_MESSAGE =
+    `Olá! Eu sou a **Bia**, sua assistente psicopedagógica da Passos Mágicos 🌟\n\n` +
+    `Estou aqui para te apoiar na sua jornada de aprendizado — seja para entender seus indicadores, ` +
+    `descobrir programas disponíveis ou conversar sobre os seus estudos.\n\n` +
+    `Para personalizar o atendimento, poderia me informar o seu **RA (Registro do Aluno)**? ` +
+    `Você encontra esse número na carteirinha ou pode pedir à coordenação. 😊`;
+
+  // ── Estado ────────────────────────────────────────────────────────────────
+  let isLoading = false;
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    appendBotMessage(WELCOME_MESSAGE, false);
+    renderQuickPrompts();
+  });
+
+  // ── Quick prompts ─────────────────────────────────────────────────────────
+  function renderQuickPrompts() {
+    const container = document.getElementById('quick-prompts');
+    container.innerHTML = QUICK_PROMPTS.map(p => `
+      <button onclick="quickSend(this.dataset.text)"
+        data-text="${p.replace(/"/g, '&quot;')}"
+        class="flex-shrink-0 text-xs bg-pm-card/60 border border-pm-light/20
+               text-pm-light px-3 py-1.5 rounded-full whitespace-nowrap
+               hover:border-pm-accent/60 hover:text-white transition-all duration-150">
+        ${p.length > 38 ? p.slice(0, 36) + '…' : p}
+      </button>`).join('');
+  }
+
+  function quickSend(text) {
+    if (isLoading) return;
+    document.getElementById('msg-input').value = text;
+    sendMessage();
+  }
+
+  // ── Enviar mensagem ───────────────────────────────────────────────────────
+  async function sendMessage() {
+    if (isLoading) return;
+
+    const input = document.getElementById('msg-input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    appendUserMessage(text);
+    setLoading(true);
+
+    const reply = await callAPI(text);
+    setLoading(false);
+    appendBotMessage(reply);
+  }
+
+  // ── Chamada à API (proxy Vercel → n8n) ────────────────────────────────────
+  async function callAPI(userMessage) {
+    try {
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 30_000);
+
+      const response = await fetch('/api/chat', {
+        method:  'POST',
+        signal:  controller.signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message:   userMessage,
+          sessionId: SESSION_ID,
+        }),
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.reply || 'Desculpe, não recebi uma resposta válida. Pode tentar de novo?';
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        showToast('A resposta demorou demais. Tente novamente.');
+        return 'A conexão demorou mais que o esperado. Pode tentar novamente? 😊';
+      }
+      console.error('[Bia] Erro na chamada à API:', err);
+      return getFallback(userMessage);
+    }
+  }
+
+  // ── Fallback offline ──────────────────────────────────────────────────────
+  function getFallback(text) {
+    const lower = text.toLowerCase();
+
+    if (lower.includes('inde'))
+      return '**INDE** é o Índice de Desenvolvimento Educacional — a nota geral que resume seu crescimento no programa (escala 0–10).\n\nEle considera seu desempenho, engajamento e bem-estar. Quanto maior, melhor está seu desenvolvimento! 🌟\n\n*Estou sem conexão no momento, mas posso responder mais perguntas assim que voltar.*';
+
+    if (lower.includes('pedra') || lower.includes('quartzo') || lower.includes('topázio'))
+      return 'As **Pedras** são a classificação pelo INDE:\n- 🔴 **Quartzo** (< 5,5): fase de atenção\n- 🟠 **Ágata** (5,5–7,0): em desenvolvimento\n- 🔵 **Ametista** (7,0–8,5): bom progresso\n- 🟢 **Topázio** (≥ 8,5): excelência!\n\n*Sem conexão agora — tente novamente em instantes.*';
+
+    if (lower.includes('ra') || lower.includes('registro'))
+      return 'Seu **RA (Registro do Aluno)** é o número que identifica você no programa. Você encontra na sua carteirinha ou pode pedir à coordenação da Passos Mágicos! 😊\n\n*Estou com dificuldade de conexão agora. Tente novamente em breve.*';
+
+    return 'Olá! Estou com dificuldade de conexão no momento. 😅\nPor favor, aguarde alguns instantes e tente novamente. Estou aqui para te ajudar!';
+  }
+
+  // ── Renderização de mensagens ──────────────────────────────────────────────
+  function appendUserMessage(text) {
+    const chat = document.getElementById('chat');
+    const div  = document.createElement('div');
+    div.className = 'flex justify-end animate-slide-up';
+    div.innerHTML = `
+      <div class="user-bubble text-white text-sm px-4 py-2.5 rounded-2xl
+                  rounded-br-sm max-w-[82%] leading-relaxed">
+        ${escapeHtml(text)}
+      </div>`;
+    chat.appendChild(div);
+    scrollBottom();
+  }
+
+  function appendBotMessage(text, animate = true) {
+    const chat = document.getElementById('chat');
+    const div  = document.createElement('div');
+    div.className = 'flex justify-start' + (animate ? ' animate-slide-up' : '');
+    div.innerHTML = `
+      <div class="flex gap-2 max-w-[88%]">
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pm-accent/20
+                    border border-pm-accent/40 flex items-center
+                    justify-center text-base mt-0.5 select-none">🌟</div>
+        <div class="bot-bubble text-white text-sm px-4 py-2.5 rounded-2xl
+                    rounded-bl-sm leading-relaxed markdown-content">
+          ${renderMarkdown(text)}
+        </div>
+      </div>`;
+    chat.appendChild(div);
+    scrollBottom();
+  }
+
+  function showTyping() {
+    const chat = document.getElementById('chat');
+    const div  = document.createElement('div');
+    div.id        = 'typing-indicator';
+    div.className = 'flex justify-start animate-fade-in';
+    div.innerHTML = `
+      <div class="flex gap-2 items-start">
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pm-accent/20
+                    border border-pm-accent/40 flex items-center
+                    justify-center text-base select-none">🌟</div>
+        <div class="bot-bubble px-4 py-3 rounded-2xl rounded-bl-sm">
+          <div class="flex gap-1 items-center">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      </div>`;
+    chat.appendChild(div);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  // ── Estado de carregamento ────────────────────────────────────────────────
+  function setLoading(loading) {
+    isLoading = loading;
+    const btn   = document.getElementById('send-btn');
+    const input = document.getElementById('msg-input');
+    btn.disabled   = loading;
+    input.disabled = loading;
+    if (loading) { showTyping(); } else { removeTyping(); }
+  }
+
+  // ── Toast de erro ─────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const toast = document.getElementById('error-toast');
+    toast.textContent = msg;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 4000);
+  }
+
+  // ── Utilitários ───────────────────────────────────────────────────────────
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function scrollBottom() {
+    const chat = document.getElementById('chat');
+    setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 50);
+  }
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g,  '&amp;')
+      .replace(/</g,  '&lt;')
+      .replace(/>/g,  '&gt;')
+      .replace(/"/g,  '&quot;')
+      .replace(/\n/g, '<br>');
+  }
+
+  function renderMarkdown(text) {
+    return text
+      // Bold e itálico
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,     '<em>$1</em>')
+      // Cabeçalhos
+      .replace(/^### (.*)/gm, '<h3>$1</h3>')
+      .replace(/^## (.*)/gm,  '<h3>$1</h3>')
+      // Tabelas
+      .replace(/^\| (.*) \|$/gm, (_, row) => {
+        const cells = row.split(' | ').map(c =>
+          `<td class="px-2 py-0.5 border border-white/10 text-xs">${c}</td>`
+        ).join('');
+        return `<tr>${cells}</tr>`;
+      })
+      .replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m =>
+        `<table class="border-collapse my-1 w-full">${m}</table>`
+      )
+      // Listas não ordenadas
+      .replace(/^[-•] (.*)/gm, '<li>$1</li>')
+      // Listas ordenadas
+      .replace(/^\d+\. (.*)/gm, '<li>$1</li>')
+      .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+      // Código inline
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      // Quebras de linha
+      .replace(/\n/g, '<br>');
+  }
+  </script>
+</body>
+</html>
