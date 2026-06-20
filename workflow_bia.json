@@ -1,0 +1,427 @@
+{
+  "name": "Bia — Psicopedagoga Passos Mágicos",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Entrada & Segurança\n\n**Webhook** recebe `{ message, sessionId }` do frontend.\n\n**Verificar Secret** compara o header `x-webhook-secret`\ncom o valor configurado aqui. Troque `SUBSTITUA_PELO_SEU_SECRET`\npelo mesmo valor que está no `index.html`.\n\n**Não Autorizado** retorna HTTP 401 se o secret não bater.",
+        "height": 520,
+        "width": 660,
+        "color": 5
+      },
+      "id": "sticky-001-entrada",
+      "name": "Sticky Note — Entrada",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [160, -100]
+    },
+    {
+      "parameters": {
+        "content": "## IA & Ferramentas\n\n**Bia Psicopedagoga** é o AI Agent principal.\n\n**Credenciais a configurar:**\n- GPT-4o-mini → OpenAI API Key\n- Memória Redis → Redis connection\n- BuscarAluno → Supabase URL + Service Key\n- Pinecone PM → Pinecone API Key\n- Embeddings → OpenAI API Key\n\n**BuscarAluno:** troque `alunos` pelo nome real\nda tabela no seu Supabase.\n\n**Pinecone PM:** troque `passos-magicos` pelo nome\nreal do índice no Pinecone.",
+        "height": 520,
+        "width": 700,
+        "color": 4
+      },
+      "id": "sticky-002-ia",
+      "name": "Sticky Note — IA",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [840, -100]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f1a2b3c4-d5e6-4f78-9abc-def012345678",
+      "name": "Receber Mensagem",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "3c4d5e6f-7a8b-4c9d-ae1f-2b3c4d5e6f7a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-secret-check-001",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] }}",
+              "rightValue": "SUBSTITUA_PELO_SEU_SECRET",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a2b3c4d5-e6f7-4a8b-9cde-f01234567890",
+      "name": "Verificar Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-001-message",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-002-session",
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b3c4d5e6-f7a8-4b9c-ade0-123456789012",
+      "name": "Preparar Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 160]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "options": {
+          "systemMessage": "=Você é a **Bia**, assistente psicopedagógica virtual da **Passos Mágicos** (Embu-Guaçu, SP). Sua missão é apoiar os aprendizes da ONG com orientação educacional empática, personalizada e fundamentada nos valores e programas da instituição.\n\n## Identidade e Tom\n- Nome: Bia\n- Tom: acolhedor, encorajador, empático e positivo\n- Linguagem: simples e próxima, adaptada ao nível do aluno\n- Use emojis com moderação para tornar a conversa mais leve\n- Nunca minimize dificuldades — valide as emoções antes de propor soluções\n- Evite jargões técnicos; explique termos quando necessário\n\n## Fluxo de Início de Conversa\n1. Cumprimente calorosamente e se apresente brevemente\n2. Pergunte o **RA (Registro do Aluno)** para personalizar o atendimento\n3. Ao receber o RA, use **imediatamente** a ferramenta BuscarAluno\n4. Chame o aluno pelo **primeiro nome** após obter os dados\n5. Se o aluno não souber o RA, continue ajudando de forma geral e oriente-o a verificar com a coordenação\n\n## Interpretação dos Indicadores (escala 0–10)\nApós usar BuscarAluno, interprete os dados de forma humanizada:\n- **IAN** (Adequação de Nível): se o aluno está na fase adequada para sua idade\n- **IDA** (Desempenho Acadêmico): como vai em Matemática, Português e Inglês\n- **IEG** (Engajamento): frequência e participação nas atividades\n- **IAA** (Autoavaliação): como o próprio aluno se percebe no programa\n- **IPS** (Psicossocial): bem-estar emocional e qualidade das relações\n- **IPP** (Psicopedagógico): avaliação especializada (disponível a partir de 2023)\n- **IPV** (Ponto de Virada): indicador de transformação da trajetória\n- **INDE** (Índice de Desenvolvimento Educacional): síntese geral (0–10)\n\n## Classificação por Pedra (baseada no INDE)\n- 🔴 **Quartzo** (INDE < 5,5): fase de atenção especial — precisa de suporte extra\n- 🟠 **Ágata** (5,5–7,0): desenvolvimento em curso — bom progresso, mas há espaço\n- 🔵 **Ametista** (7,0–8,5): bom desenvolvimento — está indo muito bem!\n- 🟢 **Topázio** (≥ 8,5): excelência — parabéns, continue assim!\n\n## Recomendações por Indicador Crítico (< 5,0)\n- **IAN baixo** → Construindo Sonhos (reforço intensivo de Português + Matemática)\n- **IDA baixo** → atividades lúdicas de Matemática (fins de semana) + Speed Up (inglês)\n- **IEG baixo** → Passos na Sua Casa (visita domiciliar) + Café em Família\n- **IPS crítico** → Serviço Social: entrevista social, Passos em Família\n- **IAA / IPS / IPP / IPV baixo** → programa de Psicologia da fase do aluno:\n  - Alfa → Heróis da Educação\n  - Fase 1 → Guardiões do Saber\n  - Fase 2 → Sabedoria em Ação\n  - Fase 3 → Exploradores do Saber\n  - Fase 4 → Jornada das Emoções\n  - Fase 5 → Quebrando Barreiras\n  - Fase 6 → SuperAção\n  - Fase 7 → Eu no Comando\n  - Fase 8 → Ponto de Virada\n  - Fase 9 → Conectando Passos\n  - Fase 10 → Passos em Carreiras\n\n## Ferramentas Disponíveis\n- **BuscarAluno**: consulta indicadores do aluno pelo RA no banco de dados. Use sempre que o aluno informar o RA.\n- **ConhecimentosPM**: busca informações institucionais (programas, código de ética, relatório de atividades, diretrizes). Use para responder dúvidas sobre a ONG ou fundamentar recomendações.\n\n## Limites Éticos — NUNCA faça\n- Dar diagnósticos médicos, psicológicos ou psiquiátricos\n- Substituir atendimento presencial de psicólogo, médico ou terapeuta\n- Compartilhar ou inferir dados de outros alunos\n- Prometer resultados específicos garantidos\n- **Crise grave** (automutilação, violência, ideação suicida): acolha com cuidado, valide os sentimentos e oriente imediatamente a buscar a equipe de psicologia presencial da PM ou ligar **CVV: 188** (24h, gratuito)\n\n## Boas Práticas de Resposta\n- Seja direta e objetiva — evite respostas longas sem necessidade\n- Celebre pontos positivos antes de abordar áreas de atenção\n- Use listas quando houver múltiplos itens\n- Termine sempre com uma pergunta ou oferta de ajuda adicional\n- Responda exclusivamente em **português brasileiro**\n\nData e hora atual: {{ $now }}"
+        }
+      },
+      "id": "c4d5e6f7-a8b9-4c0d-be12-345678901234",
+      "name": "Bia Psicopedagoga",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [920, 160]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 800
+        }
+      },
+      "id": "d5e6f7a8-b9c0-4d1e-bf23-456789012345",
+      "name": "GPT-4o-mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [760, 420]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}",
+        "contextWindowLength": 20
+      },
+      "id": "e6f7a8b9-c0d1-4e2f-c034-567890123456",
+      "name": "Memória Redis",
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.3,
+      "position": [920, 420]
+    },
+    {
+      "parameters": {
+        "name": "BuscarAluno",
+        "description": "Consulta os dados acadêmicos de um aluno no banco de dados da Passos Mágicos usando o número de RA (Registro do Aluno). Retorna nome, fase, ano, indicadores (INDE, IAN, IDA, IEG, IAA, IPS, IPP, IPV), classificação em pedra e indicador de risco. Use sempre que o aluno informar o seu RA.",
+        "operation": "getMany",
+        "tableId": "alunos",
+        "returnAll": false,
+        "limit": 5,
+        "filterType": "manual",
+        "matchType": "all",
+        "filters": {
+          "conditions": [
+            {
+              "condition": "eq",
+              "keyName": "ra",
+              "keyValue": "={{ $fromAI('ra', 'Número de RA do aluno a ser consultado, ex: 12345') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f7a8b9c0-d1e2-4f3a-d145-678901234567",
+      "name": "BuscarAluno",
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [1080, 420]
+    },
+    {
+      "parameters": {
+        "name": "ConhecimentosPM",
+        "description": "Busca informações institucionais da Passos Mágicos: programas educacionais detalhados, código de ética profissional, relatório de atividades, diretrizes pedagógicas e procedimentos de intervenção. Use para responder dúvidas sobre a ONG, programas específicos, regulamentos e para fundamentar recomendações com embasamento institucional."
+      },
+      "id": "a8b9c0d1-e2f3-4a4b-e256-789012345678",
+      "name": "ConhecimentosPM",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [1240, 420]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "b9c0d1e2-f3a4-4b5c-f367-890123456789",
+      "name": "GPT-4o-mini RAG",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [1400, 420]
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "passos-magicos",
+          "mode": "list",
+          "cachedResultName": "passos-magicos"
+        },
+        "options": {}
+      },
+      "id": "c0d1e2f3-a4b5-4c6d-a478-901234567890",
+      "name": "Pinecone PM",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [1160, 620]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d1e2f3a4-b5c6-4d7e-b589-012345678901",
+      "name": "Embeddings PM",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [1320, 620]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reply: $json.output }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type, x-webhook-secret"
+              }
+            ]
+          }
+        }
+      },
+      "id": "e2f3a4b5-c6d7-4e8f-c690-123456789012",
+      "name": "Resposta OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 160]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ error: 'Unauthorized', reply: null }) }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f3a4b5c6-d7e8-4f9a-d701-234567890123",
+      "name": "Não Autorizado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 440]
+    }
+  ],
+  "connections": {
+    "Receber Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Verificar Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Secret": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Não Autorizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados": {
+      "main": [
+        [
+          {
+            "node": "Bia Psicopedagoga",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bia Psicopedagoga": {
+      "main": [
+        [
+          {
+            "node": "Resposta OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o-mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Bia Psicopedagoga",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória Redis": {
+      "ai_memory": [
+        [
+          {
+            "node": "Bia Psicopedagoga",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuscarAluno": {
+      "ai_tool": [
+        [
+          {
+            "node": "Bia Psicopedagoga",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ConhecimentosPM": {
+      "ai_tool": [
+        [
+          {
+            "node": "Bia Psicopedagoga",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o-mini RAG": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ConhecimentosPM",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone PM": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "ConhecimentosPM",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings PM": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone PM",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7e8f9a0b-c1d2-4e3f-a4b5-c6d7e8f90123",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "passos-magicos-bia-psicopedagoga-2025"
+  },
+  "id": "bia-psicopedagoga-pm-workflow-2025",
+  "tags": [
+    {
+      "name": "Passos Mágicos",
+      "id": "tag-pm-001",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "name": "PsicoPedagogia",
+      "id": "tag-pm-002",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
