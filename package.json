@@ -6,7 +6,7 @@
     "build": "echo 'Static site - no build step'"
   },
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   },
   "dependencies": {}
 }
