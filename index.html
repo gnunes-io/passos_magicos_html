@@ -23,12 +23,10 @@
           animation: {
             'slide-up': 'slideUp 0.25s ease-out',
             'fade-in':  'fadeIn 0.2s ease-out',
-            'dot-pop':  'dotPop 1.4s ease-in-out infinite',
           },
           keyframes: {
             slideUp: { from: { transform: 'translateY(10px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
             fadeIn:  { from: { opacity: '0' },                                to: { opacity: '1' } },
-            dotPop:  { '0%,80%,100%': { transform: 'scale(0)' },             '40%': { transform: 'scale(1)' } },
           }
         }
       }
@@ -39,7 +37,7 @@
     body { background-color: #F7F4FF; }
 
     /* ── Layout ── */
-    .chat-area { height: calc(100dvh - 64px - 158px); }
+    .chat-area { height: calc(100dvh - 64px - 162px); }
 
     /* ── Bubbles ── */
     .user-bubble {
@@ -52,16 +50,20 @@
       box-shadow: 0 1px 4px rgba(124,58,237,0.07);
     }
 
-    /* ── Typing dots ── */
+    /* ── Typing dots — keyframe definido aqui para funcionar fora do Tailwind ── */
+    @keyframes dotBounce {
+      0%, 60%, 100% { transform: translateY(0);    opacity: 0.4; }
+      30%           { transform: translateY(-6px); opacity: 1;   }
+    }
     .dot {
       width: 8px; height: 8px;
       background: #A78BFA;
       border-radius: 50%;
       display: inline-block;
-      animation: dotPop 1.4s ease-in-out infinite;
+      animation: dotBounce 1.2s ease-in-out infinite;
     }
-    .dot:nth-child(2) { animation-delay: 0.22s; }
-    .dot:nth-child(3) { animation-delay: 0.44s; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar       { width: 3px; }
@@ -93,7 +95,7 @@
     @keyframes onlinePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     /* ── Emoji panel ── */
-    .emoji-panel {
+    #emoji-panel {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 2px;
@@ -101,17 +103,20 @@
       border: 1px solid #E9D5FF;
       border-radius: 16px;
       padding: 10px;
-      box-shadow: 0 8px 24px rgba(124,58,237,0.14);
-      width: 260px;
+      box-shadow: 0 -4px 20px rgba(124,58,237,0.12);
     }
-    .emoji-panel button {
-      font-size: 1.3rem;
-      padding: 4px;
+    #emoji-panel button {
+      font-size: 1.35rem;
+      padding: 5px 2px;
       border-radius: 8px;
-      transition: background 0.1s;
       line-height: 1;
+      transition: background 0.1s;
     }
-    .emoji-panel button:hover { background: #EDE9FE; }
+    #emoji-panel button:hover { background: #EDE9FE; }
+
+    /* ── Emoji trigger icon ── */
+    .emoji-trigger { color: #C4B5FD; transition: color 0.15s; }
+    .emoji-trigger:hover { color: #7C3AED; }
 
     /* ── Misc ── */
     .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
@@ -152,36 +157,42 @@
   <!-- ══ INPUT BAR ════════════════════════════════════════════════════════ -->
   <div class="fixed bottom-0 inset-x-0 z-10 bg-bia-bg border-t border-purple-100"
        style="padding-bottom: env(safe-area-inset-bottom, 0px)">
-    <div class="max-w-2xl mx-auto px-4 pt-3 pb-3">
+    <div class="max-w-2xl mx-auto px-4 pt-2 pb-3">
+
+      <!-- Emoji panel — acima de tudo, largura total do container -->
+      <div id="emoji-panel" class="hidden mb-2"></div>
 
       <!-- Quick prompts -->
       <div id="quick-prompts" class="flex gap-2 overflow-x-auto no-scroll pb-2.5"></div>
 
       <!-- Input row -->
-      <div class="relative flex gap-2 items-end">
-
-        <!-- Emoji panel (acima do botão) -->
-        <div id="emoji-panel" class="emoji-panel hidden absolute bottom-12 left-0 z-30"></div>
-
-        <!-- Textarea wrapper -->
+      <div class="flex gap-2 items-end">
         <div class="input-ring flex-1 bg-white border border-purple-200 rounded-2xl overflow-hidden flex items-end">
-          <!-- Emoji button inside input -->
+
+          <!-- Emoji trigger: SVG smiley outline (watermark) -->
           <button id="emoji-btn" onclick="toggleEmoji(event)"
-                  class="flex-shrink-0 px-3 pb-3 text-xl text-bia-muted hover:text-bia-base transition-colors select-none"
-                  title="Emoji">
-            😊
+                  class="emoji-trigger flex-shrink-0 px-3 pb-[11px] select-none"
+                  title="Emojis">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+              <circle cx="9"  cy="9"  r="0.8" fill="currentColor" stroke="none"/>
+              <circle cx="15" cy="9"  r="0.8" fill="currentColor" stroke="none"/>
+            </svg>
           </button>
+
           <textarea id="msg-input"
             rows="1"
             placeholder="Digite sua mensagem..."
             onkeydown="handleKey(event)"
             oninput="autoResize(this)"
-            class="flex-1 bg-transparent text-bia-ink text-sm px-2 py-3 resize-none outline-none
+            class="flex-1 bg-transparent text-bia-ink text-sm px-1 py-3 resize-none outline-none
                    placeholder-gray-400 leading-relaxed select-text"
             style="max-height:120px"></textarea>
         </div>
 
-        <!-- Send button -->
         <button id="send-btn" onclick="sendMessage()"
                 class="send-btn flex-shrink-0 bg-bia-base hover:bg-bia-deep active:scale-95 text-white
                        rounded-2xl p-3 transition-all duration-150 shadow-md shadow-purple-200">
@@ -238,8 +249,6 @@
     appendBotMessage(WELCOME_MESSAGE, false);
     renderQuickPrompts();
     buildEmojiPanel();
-
-    // Fecha emoji panel ao clicar fora
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#emoji-btn') && !e.target.closest('#emoji-panel')) {
         document.getElementById('emoji-panel').classList.add('hidden');
@@ -249,23 +258,21 @@
 
   // ── Emoji ──────────────────────────────────────────────────────────────
   function buildEmojiPanel() {
-    const panel = document.getElementById('emoji-panel');
-    panel.innerHTML = EMOJIS.map(e =>
-      `<button onclick="insertEmoji('${e}')" title="${e}">${e}</button>`
-    ).join('');
+    document.getElementById('emoji-panel').innerHTML =
+      EMOJIS.map(e => `<button onclick="insertEmoji('${e}')">${e}</button>`).join('');
   }
 
-  function toggleEmoji(event) {
-    event.stopPropagation();
+  function toggleEmoji(e) {
+    e.stopPropagation();
     document.getElementById('emoji-panel').classList.toggle('hidden');
   }
 
   function insertEmoji(emoji) {
     const input = document.getElementById('msg-input');
-    const start = input.selectionStart ?? input.value.length;
-    const end   = input.selectionEnd   ?? input.value.length;
-    input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
-    input.selectionStart = input.selectionEnd = start + emoji.length;
+    const s = input.selectionStart ?? input.value.length;
+    const en = input.selectionEnd   ?? input.value.length;
+    input.value = input.value.slice(0, s) + emoji + input.value.slice(en);
+    input.selectionStart = input.selectionEnd = s + emoji.length;
     input.focus();
     autoResize(input);
     document.getElementById('emoji-panel').classList.add('hidden');
@@ -273,8 +280,7 @@
 
   // ── Quick prompts ──────────────────────────────────────────────────────
   function renderQuickPrompts() {
-    const container = document.getElementById('quick-prompts');
-    container.innerHTML = QUICK_PROMPTS.map(p => `
+    document.getElementById('quick-prompts').innerHTML = QUICK_PROMPTS.map(p => `
       <button onclick="quickSend(this.dataset.text)"
         data-text="${p.replace(/"/g, '&quot;')}"
         class="flex-shrink-0 text-xs bg-bia-light text-bia-base border border-bia-mid/40
@@ -381,7 +387,7 @@
       <div class="flex gap-2 items-end">
         <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 select-none">
         <div class="bot-bubble px-4 py-3.5 rounded-2xl rounded-bl-sm">
-          <div class="flex gap-1.5 items-center h-4">
+          <div class="flex gap-1.5 items-center" style="height:16px">
             <span class="dot"></span>
             <span class="dot"></span>
             <span class="dot"></span>
@@ -397,7 +403,6 @@
     if (el) el.remove();
   }
 
-  // ── Loading state ──────────────────────────────────────────────────────
   function setLoading(v) {
     isLoading = v;
     document.getElementById('send-btn').disabled  = v;
@@ -412,7 +417,6 @@
     setTimeout(() => el.classList.add('hidden'), 4000);
   }
 
-  // ── Utilities ──────────────────────────────────────────────────────────
   function handleKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
