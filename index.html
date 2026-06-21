@@ -162,10 +162,11 @@
   <!-- ══ INPUT BAR ════════════════════════════════════════════════════════ -->
   <div class="fixed bottom-0 inset-x-0 z-10 bg-bia-bg border-t border-purple-100"
        style="padding-bottom: env(safe-area-inset-bottom, 0px)">
-    <div class="max-w-2xl mx-auto px-4 pt-2 pb-3">
+    <div class="max-w-2xl mx-auto px-4 pt-2 pb-3 relative">
 
-      <!-- Emoji panel — acima de tudo, largura total do container -->
-      <div id="emoji-panel" class="hidden mb-2"></div>
+      <!-- Emoji panel — absolute, flutua ACIMA da barra sem empurrar conteúdo -->
+      <div id="emoji-panel" class="hidden absolute bottom-full left-4 right-4 mb-1 z-30
+                                   overflow-y-auto" style="max-height:180px"></div>
 
       <!-- Quick prompts -->
       <div id="quick-prompts" class="flex gap-2 overflow-x-auto no-scroll pb-2.5"></div>
