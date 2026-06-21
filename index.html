@@ -96,7 +96,7 @@
 
     /* ── Emoji panel ── */
     #emoji-panel {
-      display: flex;
+      display: none;           /* oculto por padrão */
       flex-wrap: wrap;
       gap: 2px;
       background: #fff;
@@ -105,6 +105,7 @@
       padding: 8px;
       box-shadow: 0 -4px 16px rgba(124,58,237,0.1);
     }
+    #emoji-panel.open { display: flex; }   /* só aparece com .open */
     #emoji-panel button {
       width: 36px;
       height: 36px;
@@ -165,7 +166,7 @@
     <div class="max-w-2xl mx-auto px-4 pt-2 pb-3 relative">
 
       <!-- Emoji panel — absolute, flutua ACIMA da barra sem empurrar conteúdo -->
-      <div id="emoji-panel" class="hidden absolute bottom-full left-4 right-4 mb-1 z-30
+      <div id="emoji-panel" class="absolute bottom-full left-4 right-4 mb-1 z-30
                                    overflow-y-auto" style="max-height:180px"></div>
 
       <!-- Quick prompts -->
@@ -257,7 +258,7 @@
     buildEmojiPanel();
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#emoji-btn') && !e.target.closest('#emoji-panel')) {
-        document.getElementById('emoji-panel').classList.add('hidden');
+        document.getElementById('emoji-panel').classList.remove('open');
       }
     });
   });
@@ -270,7 +271,7 @@
 
   function toggleEmoji(e) {
     e.stopPropagation();
-    document.getElementById('emoji-panel').classList.toggle('hidden');
+    document.getElementById('emoji-panel').classList.toggle('open');
   }
 
   function insertEmoji(emoji) {
@@ -281,7 +282,7 @@
     input.selectionStart = input.selectionEnd = s + emoji.length;
     input.focus();
     autoResize(input);
-    document.getElementById('emoji-panel').classList.add('hidden');
+    document.getElementById('emoji-panel').classList.remove('open');
   }
 
   // ── Quick prompts ──────────────────────────────────────────────────────
