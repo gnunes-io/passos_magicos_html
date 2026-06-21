@@ -12,7 +12,6 @@
           colors: {
             bia: {
               bg:    '#F7F4FF',
-              soft:  '#FAF8FF',
               light: '#EDE9FE',
               mid:   '#C4B5FD',
               base:  '#7C3AED',
@@ -22,14 +21,14 @@
             }
           },
           animation: {
-            'fade-in':  'fadeIn 0.25s ease-out',
             'slide-up': 'slideUp 0.25s ease-out',
+            'fade-in':  'fadeIn 0.2s ease-out',
             'dot-pop':  'dotPop 1.4s ease-in-out infinite',
           },
           keyframes: {
-            fadeIn:  { from: { opacity: '0' },                                          to: { opacity: '1' } },
-            slideUp: { from: { transform: 'translateY(10px)', opacity: '0' },           to: { transform: 'translateY(0)', opacity: '1' } },
-            dotPop:  { '0%,80%,100%': { transform: 'scale(0)' }, '40%': { transform: 'scale(1)' } },
+            slideUp: { from: { transform: 'translateY(10px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
+            fadeIn:  { from: { opacity: '0' },                                to: { opacity: '1' } },
+            dotPop:  { '0%,80%,100%': { transform: 'scale(0)' },             '40%': { transform: 'scale(1)' } },
           }
         }
       }
@@ -37,33 +36,32 @@
   </script>
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-
     body { background-color: #F7F4FF; }
 
-    /* ── Chat area height ── */
-    .chat-area { height: calc(100dvh - 72px - 152px); }
+    /* ── Layout ── */
+    .chat-area { height: calc(100dvh - 64px - 158px); }
 
-    /* ── Message bubbles ── */
+    /* ── Bubbles ── */
     .user-bubble {
       background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
-      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+      box-shadow: 0 2px 8px rgba(124,58,237,0.22);
     }
     .bot-bubble {
-      background: #FFFFFF;
+      background: #fff;
       border: 1px solid #E9D5FF;
-      box-shadow: 0 1px 4px rgba(124, 58, 237, 0.07);
+      box-shadow: 0 1px 4px rgba(124,58,237,0.07);
     }
 
     /* ── Typing dots ── */
     .dot {
-      width: 7px; height: 7px;
-      background: #C4B5FD;
+      width: 8px; height: 8px;
+      background: #A78BFA;
       border-radius: 50%;
       display: inline-block;
       animation: dotPop 1.4s ease-in-out infinite;
     }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
+    .dot:nth-child(2) { animation-delay: 0.22s; }
+    .dot:nth-child(3) { animation-delay: 0.44s; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar       { width: 3px; }
@@ -71,104 +69,122 @@
     ::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 2px; }
 
     /* ── Markdown ── */
-    .md ul     { list-style: disc; padding-left: 1.2rem; }
+    .md ul     { list-style: disc; padding-left: 1.25rem; }
     .md li     { margin-bottom: 0.2rem; }
     .md strong { color: #7C3AED; font-weight: 600; }
     .md em     { color: #6D28D9; font-style: italic; }
     .md h3     { color: #6D28D9; font-weight: 700; font-size: 0.9rem; margin: 0.5rem 0 0.2rem; }
-    .md code   { background: #EDE9FE; color: #7C3AED; padding: 1px 5px; border-radius: 4px; font-size: 0.78em; font-family: monospace; }
+    .md code   { background: #EDE9FE; color: #7C3AED; padding: 1px 5px; border-radius: 4px; font-size: 0.78em; }
     .md table  { border-collapse: collapse; width: 100%; margin: 0.4rem 0; font-size: 0.78rem; }
-    .md td     { padding: 3px 8px; border: 1px solid #E9D5FF; color: #1E1B2E; }
+    .md td     { padding: 4px 8px; border: 1px solid #E9D5FF; }
 
-    /* ── Input focus ring ── */
-    .input-ring { transition: border-color 0.2s, box-shadow 0.2s; }
+    /* ── Input focus ── */
+    .input-ring { transition: border-color 0.18s, box-shadow 0.18s; }
     .input-ring:focus-within { border-color: #A78BFA !important; box-shadow: 0 0 0 3px #EDE9FE; }
 
     /* ── Online dot ── */
     .online-dot {
-      width: 9px; height: 9px;
+      width: 11px; height: 11px;
       background: #22C55E;
       border-radius: 50%;
       border: 2px solid #fff;
       animation: onlinePulse 2.4s ease-in-out infinite;
     }
-    @keyframes onlinePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+    @keyframes onlinePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── Emoji panel ── */
+    .emoji-panel {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      background: #fff;
+      border: 1px solid #E9D5FF;
+      border-radius: 16px;
+      padding: 10px;
+      box-shadow: 0 8px 24px rgba(124,58,237,0.14);
+      width: 260px;
+    }
+    .emoji-panel button {
+      font-size: 1.3rem;
+      padding: 4px;
+      border-radius: 8px;
+      transition: background 0.1s;
+      line-height: 1;
+    }
+    .emoji-panel button:hover { background: #EDE9FE; }
 
     /* ── Misc ── */
-    .send-btn:disabled     { opacity: 0.38; cursor: not-allowed; }
-    .no-scroll             { scrollbar-width: none; -ms-overflow-style: none; }
+    .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+    .no-scroll { scrollbar-width: none; -ms-overflow-style: none; }
     .no-scroll::-webkit-scrollbar { display: none; }
-    textarea:focus         { outline: none; }
+    textarea:focus { outline: none; }
   </style>
 </head>
 <body class="min-h-screen font-sans">
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       HEADER
-  ════════════════════════════════════════════════════════════════════════ -->
-  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-purple-100 shadow-sm" style="height:72px">
+  <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-purple-100 shadow-sm"
+          style="height:64px">
     <div class="max-w-2xl mx-auto h-full px-4 flex items-center gap-3">
-
-      <!-- Avatar -->
       <div class="relative flex-shrink-0">
-        <img src="/bia_avatar.png" alt="Bia" class="w-12 h-12 select-none">
+        <img src="/bia_avatar.png" alt="Bia" class="w-11 h-11 select-none">
         <span class="online-dot absolute -bottom-0.5 -right-0.5"></span>
       </div>
-
-      <!-- Name + subtitle -->
-      <div class="flex-1 min-w-0">
+      <div>
         <p class="font-bold text-bia-ink text-[15px] leading-tight">Bia</p>
-        <p class="text-xs text-bia-muted truncate">Assistente Psicopedagógica · Passos Mágicos</p>
-      </div>
-
-      <!-- Badge -->
-      <div class="hidden sm:flex items-center bg-bia-light px-3 py-1.5 rounded-full flex-shrink-0">
-        <span class="text-xs font-semibold text-bia-base tracking-wide">Passos Mágicos</span>
+        <p class="text-[11px] text-green-500 font-medium leading-tight">Online agora</p>
       </div>
     </div>
   </header>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       CHAT
-  ════════════════════════════════════════════════════════════════════════ -->
+  <!-- ══ CHAT ════════════════════════════════════════════════════════════ -->
   <main class="max-w-2xl mx-auto px-4">
     <div id="chat" class="chat-area overflow-y-auto flex flex-col gap-3 py-4 pr-1 select-text"></div>
   </main>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       ERROR TOAST
-  ════════════════════════════════════════════════════════════════════════ -->
+  <!-- ══ ERROR TOAST ══════════════════════════════════════════════════════ -->
   <div id="error-toast"
-       class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-slide-up
+       class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-fade-in
               bg-red-50 border border-red-200 text-red-600 text-xs
               px-4 py-2 rounded-xl shadow-lg max-w-xs text-center">
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       INPUT BAR
-  ════════════════════════════════════════════════════════════════════════ -->
+  <!-- ══ INPUT BAR ════════════════════════════════════════════════════════ -->
   <div class="fixed bottom-0 inset-x-0 z-10 bg-bia-bg border-t border-purple-100"
        style="padding-bottom: env(safe-area-inset-bottom, 0px)">
-    <div class="max-w-2xl mx-auto px-4 pt-3 pb-4">
+    <div class="max-w-2xl mx-auto px-4 pt-3 pb-3">
 
       <!-- Quick prompts -->
       <div id="quick-prompts" class="flex gap-2 overflow-x-auto no-scroll pb-2.5"></div>
 
       <!-- Input row -->
-      <div class="flex gap-2 items-end">
-        <div class="input-ring flex-1 bg-white border border-purple-200 rounded-2xl overflow-hidden">
+      <div class="relative flex gap-2 items-end">
+
+        <!-- Emoji panel (acima do botão) -->
+        <div id="emoji-panel" class="emoji-panel hidden absolute bottom-12 left-0 z-30"></div>
+
+        <!-- Textarea wrapper -->
+        <div class="input-ring flex-1 bg-white border border-purple-200 rounded-2xl overflow-hidden flex items-end">
+          <!-- Emoji button inside input -->
+          <button id="emoji-btn" onclick="toggleEmoji(event)"
+                  class="flex-shrink-0 px-3 pb-3 text-xl text-bia-muted hover:text-bia-base transition-colors select-none"
+                  title="Emoji">
+            😊
+          </button>
           <textarea id="msg-input"
             rows="1"
             placeholder="Digite sua mensagem..."
             onkeydown="handleKey(event)"
             oninput="autoResize(this)"
-            class="w-full bg-transparent text-bia-ink text-sm px-4 py-3 resize-none outline-none placeholder-gray-400 leading-relaxed select-text"
+            class="flex-1 bg-transparent text-bia-ink text-sm px-2 py-3 resize-none outline-none
+                   placeholder-gray-400 leading-relaxed select-text"
             style="max-height:120px"></textarea>
         </div>
-        <button id="send-btn"
-          onclick="sendMessage()"
-          class="send-btn flex-shrink-0 bg-bia-base hover:bg-bia-deep active:scale-95 text-white
-                 rounded-2xl p-3 transition-all duration-150 shadow-md shadow-purple-200">
+
+        <!-- Send button -->
+        <button id="send-btn" onclick="sendMessage()"
+                class="send-btn flex-shrink-0 bg-bia-base hover:bg-bia-deep active:scale-95 text-white
+                       rounded-2xl p-3 transition-all duration-150 shadow-md shadow-purple-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -184,9 +200,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       SCRIPT
-  ════════════════════════════════════════════════════════════════════════ -->
+  <!-- ══ SCRIPT ═══════════════════════════════════════════════════════════ -->
   <script>
   const SESSION_ID = (typeof crypto !== 'undefined' && crypto.randomUUID)
     ? crypto.randomUUID()
@@ -202,6 +216,14 @@
     'Não sei meu RA, como consigo?',
   ];
 
+  const EMOJIS = [
+    '😊','😄','😁','🥰','😍','🤗','😅',
+    '😢','😔','😰','😭','🥺','😤','😮',
+    '🙏','👍','👏','🙌','💪','✌️','🤝',
+    '❤️','💜','💛','🌟','⭐','✨','🎉',
+    '📚','✏️','🎓','🏫','💡','📝','🔍',
+  ];
+
   const WELCOME_MESSAGE =
     `Olá! Eu sou a **Bia**, sua assistente psicopedagógica da Passos Mágicos 🌟\n\n` +
     `Estou aqui para te apoiar na sua jornada de aprendizado — seja para entender seus indicadores, ` +
@@ -211,10 +233,43 @@
 
   let isLoading = false;
 
+  // ── Init ───────────────────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
     appendBotMessage(WELCOME_MESSAGE, false);
     renderQuickPrompts();
+    buildEmojiPanel();
+
+    // Fecha emoji panel ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#emoji-btn') && !e.target.closest('#emoji-panel')) {
+        document.getElementById('emoji-panel').classList.add('hidden');
+      }
+    });
   });
+
+  // ── Emoji ──────────────────────────────────────────────────────────────
+  function buildEmojiPanel() {
+    const panel = document.getElementById('emoji-panel');
+    panel.innerHTML = EMOJIS.map(e =>
+      `<button onclick="insertEmoji('${e}')" title="${e}">${e}</button>`
+    ).join('');
+  }
+
+  function toggleEmoji(event) {
+    event.stopPropagation();
+    document.getElementById('emoji-panel').classList.toggle('hidden');
+  }
+
+  function insertEmoji(emoji) {
+    const input = document.getElementById('msg-input');
+    const start = input.selectionStart ?? input.value.length;
+    const end   = input.selectionEnd   ?? input.value.length;
+    input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+    input.selectionStart = input.selectionEnd = start + emoji.length;
+    input.focus();
+    autoResize(input);
+    document.getElementById('emoji-panel').classList.add('hidden');
+  }
 
   // ── Quick prompts ──────────────────────────────────────────────────────
   function renderQuickPrompts() {
@@ -276,7 +331,7 @@
     }
   }
 
-  // ── Fallback offline ───────────────────────────────────────────────────
+  // ── Fallback ───────────────────────────────────────────────────────────
   function getFallback(text) {
     const t = text.toLowerCase();
     if (t.includes('inde'))
@@ -288,7 +343,7 @@
     return 'Olá! Estou com dificuldade de conexão no momento. 😅\nPor favor, aguarde alguns instantes e tente novamente. Estou aqui para te ajudar!';
   }
 
-  // ── Render messages ────────────────────────────────────────────────────
+  // ── Messages ───────────────────────────────────────────────────────────
   function appendUserMessage(text) {
     const chat = document.getElementById('chat');
     const div  = document.createElement('div');
@@ -308,10 +363,8 @@
     div.className = 'flex justify-start' + (animate ? ' animate-slide-up' : '');
     div.innerHTML = `
       <div class="flex gap-2 max-w-[88%]">
-        <img src="/bia_avatar.png" alt="Bia"
-             class="flex-shrink-0 w-8 h-8 mt-0.5 select-none">
-        <div class="bot-bubble text-bia-ink text-sm px-4 py-2.5 rounded-2xl
-                    rounded-bl-sm leading-relaxed md">
+        <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 mt-0.5 select-none">
+        <div class="bot-bubble text-bia-ink text-sm px-4 py-2.5 rounded-2xl rounded-bl-sm leading-relaxed md">
           ${renderMarkdown(text)}
         </div>
       </div>`;
@@ -325,10 +378,10 @@
     div.id        = 'typing-indicator';
     div.className = 'flex justify-start animate-fade-in';
     div.innerHTML = `
-      <div class="flex gap-2 items-start">
+      <div class="flex gap-2 items-end">
         <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 select-none">
         <div class="bot-bubble px-4 py-3.5 rounded-2xl rounded-bl-sm">
-          <div class="flex gap-1 items-center">
+          <div class="flex gap-1.5 items-center h-4">
             <span class="dot"></span>
             <span class="dot"></span>
             <span class="dot"></span>
@@ -344,7 +397,7 @@
     if (el) el.remove();
   }
 
-  // ── State ──────────────────────────────────────────────────────────────
+  // ── Loading state ──────────────────────────────────────────────────────
   function setLoading(v) {
     isLoading = v;
     document.getElementById('send-btn').disabled  = v;
@@ -376,7 +429,7 @@
 
   function escapeHtml(t) {
     return t
-      .replace(/&/g,  '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
   }
 
