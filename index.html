@@ -96,21 +96,26 @@
 
     /* ── Emoji panel ── */
     #emoji-panel {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 2px;
       background: #fff;
       border: 1px solid #E9D5FF;
-      border-radius: 16px;
-      padding: 10px;
-      box-shadow: 0 -4px 20px rgba(124,58,237,0.12);
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 -4px 16px rgba(124,58,237,0.1);
     }
     #emoji-panel button {
-      font-size: 1.35rem;
-      padding: 5px 2px;
+      width: 36px;
+      height: 36px;
+      font-size: 1.15rem;
       border-radius: 8px;
-      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
       transition: background 0.1s;
+      line-height: 1;
     }
     #emoji-panel button:hover { background: #EDE9FE; }
 
