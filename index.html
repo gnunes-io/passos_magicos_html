@@ -10,106 +10,199 @@
       theme: {
         extend: {
           colors: {
-            pm: {
-              dark:   '#0f3460',
-              mid:    '#16213e',
-              accent: '#e94560',
-              light:  '#a8dadc',
-              card:   '#1a1a2e',
+            bia: {
+              bg:    '#F7F4FF',
+              light: '#EDE9FE',
+              mid:   '#C4B5FD',
+              base:  '#7C3AED',
+              deep:  '#6D28D9',
+              ink:   '#1E1B2E',
+              muted: '#64748B',
             }
           },
           animation: {
-            'fade-in':   'fadeIn 0.3s ease-out',
-            'slide-up':  'slideUp 0.3s ease-out',
-            'pulse-dot': 'pulseDot 1.4s ease-in-out infinite',
+            'slide-up': 'slideUp 0.25s ease-out',
+            'fade-in':  'fadeIn 0.2s ease-out',
           },
           keyframes: {
-            fadeIn:   { from: { opacity: '0' }, to: { opacity: '1' } },
-            slideUp:  { from: { transform: 'translateY(12px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
-            pulseDot: { '0%,80%,100%': { transform: 'scale(0)' }, '40%': { transform: 'scale(1)' } },
+            slideUp: { from: { transform: 'translateY(10px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
+            fadeIn:  { from: { opacity: '0' },                                to: { opacity: '1' } },
           }
         }
       }
     }
   </script>
   <style>
-    body { background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%); }
-    .chat-container  { height: calc(100vh - 220px); }
-    .user-bubble     { background: linear-gradient(135deg, #e94560, #c0392b); }
-    .bot-bubble      { background: linear-gradient(135deg, #1e3a5f, #16213e); border: 1px solid rgba(168,218,220,0.2); }
-    .typing-dot      { width: 8px; height: 8px; background: #a8dadc; border-radius: 50%; display: inline-block; animation: pulseDot 1.4s ease-in-out infinite; }
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    ::-webkit-scrollbar       { width: 4px; }
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { background-color: #F7F4FF; }
+
+    /* ── Layout ── */
+    .chat-area { height: calc(100dvh - 64px - 162px); }
+
+    /* ── Bubbles ── */
+    .user-bubble {
+      background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+      box-shadow: 0 2px 8px rgba(124,58,237,0.22);
+    }
+    .bot-bubble {
+      background: #fff;
+      border: 1px solid #E9D5FF;
+      box-shadow: 0 1px 4px rgba(124,58,237,0.07);
+    }
+
+    /* ── Typing dots, keyframe definido aqui para funcionar fora do Tailwind ── */
+    @keyframes dotBounce {
+      0%, 60%, 100% { transform: translateY(0);    opacity: 0.4; }
+      30%           { transform: translateY(-6px); opacity: 1;   }
+    }
+    .dot {
+      width: 8px; height: 8px;
+      background: #A78BFA;
+      border-radius: 50%;
+      display: inline-block;
+      animation: dotBounce 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar       { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(168,218,220,0.3); border-radius: 2px; }
-    .markdown-content ul      { list-style: disc; padding-left: 1.2rem; }
-    .markdown-content li      { margin-bottom: 0.25rem; }
-    .markdown-content strong  { color: #a8dadc; }
-    .markdown-content h3      { color: #e94560; font-weight: 700; margin: 0.5rem 0 0.25rem; }
-    .markdown-content code    { background: rgba(255,255,255,0.1); padding: 0 4px; border-radius: 3px; font-size: 0.8em; }
-    .send-btn:disabled        { opacity: 0.45; cursor: not-allowed; }
-    .status-dot               { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .error-toast { animation: slideUp 0.3s ease-out; }
+    ::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 2px; }
+
+    /* ── Markdown ── */
+    .md ul     { list-style: disc; padding-left: 1.25rem; }
+    .md li     { margin-bottom: 0.2rem; }
+    .md strong { color: #7C3AED; font-weight: 600; }
+    .md em     { color: #6D28D9; font-style: italic; }
+    .md h3     { color: #6D28D9; font-weight: 700; font-size: 0.9rem; margin: 0.5rem 0 0.2rem; }
+    .md code   { background: #EDE9FE; color: #7C3AED; padding: 1px 5px; border-radius: 4px; font-size: 0.78em; }
+    .md table  { border-collapse: collapse; width: 100%; margin: 0.4rem 0; font-size: 0.78rem; }
+    .md td     { padding: 4px 8px; border: 1px solid #E9D5FF; }
+
+    /* ── Input focus ── */
+    .input-ring { transition: border-color 0.18s, box-shadow 0.18s; }
+    .input-ring:focus-within { border-color: #A78BFA !important; box-shadow: 0 0 0 3px #EDE9FE; }
+
+    /* ── Online dot ── */
+    .online-dot {
+      width: 11px; height: 11px;
+      background: #22C55E;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      animation: onlinePulse 2.4s ease-in-out infinite;
+    }
+    @keyframes onlinePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── Emoji panel ── */
+    #emoji-panel {
+      display: none;           /* oculto por padrão */
+      flex-wrap: wrap;
+      gap: 2px;
+      background: #fff;
+      border: 1px solid #E9D5FF;
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 -4px 16px rgba(124,58,237,0.1);
+    }
+    #emoji-panel.open { display: flex; }   /* só aparece com .open */
+    #emoji-panel button {
+      width: 36px;
+      height: 36px;
+      font-size: 1.15rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.1s;
+      line-height: 1;
+    }
+    #emoji-panel button:hover { background: #EDE9FE; }
+
+    /* ── Emoji trigger icon ── */
+    .emoji-trigger { color: #C4B5FD; transition: color 0.15s; }
+    .emoji-trigger:hover { color: #7C3AED; }
+
+    /* ── Misc ── */
+    .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+    .no-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+    .no-scroll::-webkit-scrollbar { display: none; }
+    textarea:focus { outline: none; }
   </style>
 </head>
-<body class="min-h-screen text-white font-sans">
+<body class="min-h-screen font-sans">
 
-  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
-  <header class="px-4 pt-5 pb-3 text-center">
-    <div class="flex items-center justify-center gap-3 mb-1">
-      <div class="relative">
-        <img src="/bia_avatar.png" alt="Bia" class="w-12 h-12 rounded-full object-cover border-2 border-purple-400/50">
+  <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-purple-100 shadow-sm"
+          style="height:64px">
+    <div class="max-w-2xl mx-auto h-full px-4 flex items-center gap-3">
+      <div class="relative flex-shrink-0">
+        <img src="/bia_avatar.png" alt="Bia" class="w-11 h-11 select-none">
+        <span class="online-dot absolute -bottom-0.5 -right-0.5"></span>
       </div>
-      <div class="text-left">
-        <h1 class="text-xl font-bold text-white leading-tight">Passos Mágicos</h1>
-        <div class="flex items-center gap-2 mt-0.5">
-          <span class="text-pm-light text-sm font-medium">Bia · Assistente Psicopedagógica</span>
-          <span class="status-dot"></span>
-        </div>
+      <div>
+        <p class="font-bold text-bia-ink text-[15px] leading-tight">Bia</p>
+        <p class="text-[11px] text-green-500 font-medium leading-tight">Online agora</p>
       </div>
     </div>
   </header>
 
-  <!-- ══ Chat Window ══════════════════════════════════════════════════════════ -->
-  <div class="max-w-2xl mx-auto px-4">
-    <div id="chat"
-      class="chat-container overflow-y-auto flex flex-col gap-3 py-3 pr-1">
-    </div>
-  </div>
+  <!-- ══ CHAT ════════════════════════════════════════════════════════════ -->
+  <main class="max-w-2xl mx-auto px-4">
+    <div id="chat" class="chat-area overflow-y-auto flex flex-col gap-3 py-4 pr-1 select-text"></div>
+  </main>
 
-  <!-- ══ Error Toast ═══════════════════════════════════════════════════════════ -->
+  <!-- ══ ERROR TOAST ══════════════════════════════════════════════════════ -->
   <div id="error-toast"
-    class="hidden error-toast fixed top-4 left-1/2 -translate-x-1/2 z-50
-           bg-red-900/90 border border-red-500/50 text-red-200 text-xs
-           px-4 py-2 rounded-xl backdrop-blur max-w-xs text-center">
+       class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-fade-in
+              bg-red-50 border border-red-200 text-red-600 text-xs
+              px-4 py-2 rounded-xl shadow-lg max-w-xs text-center">
   </div>
 
-  <!-- ══ Input Bar ════════════════════════════════════════════════════════════ -->
-  <div class="fixed bottom-0 inset-x-0 pb-safe">
-    <div class="max-w-2xl mx-auto px-4 pb-4 pt-2"
-         style="background: linear-gradient(to top, #0f3460 70%, transparent)">
+  <!-- ══ INPUT BAR ════════════════════════════════════════════════════════ -->
+  <div class="fixed bottom-0 inset-x-0 z-10 bg-bia-bg border-t border-purple-100"
+       style="padding-bottom: env(safe-area-inset-bottom, 0px)">
+    <div class="max-w-2xl mx-auto px-4 pt-2 pb-3 relative">
+
+      <!-- Emoji panel, absolute, flutua ACIMA da barra sem empurrar conteúdo -->
+      <div id="emoji-panel" class="absolute bottom-full left-4 right-4 mb-1 z-30
+                                   overflow-y-auto" style="max-height:180px"></div>
 
       <!-- Quick prompts -->
-      <div id="quick-prompts" class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar"></div>
+      <div id="quick-prompts" class="flex gap-2 overflow-x-auto no-scroll pb-2.5"></div>
 
       <!-- Input row -->
       <div class="flex gap-2 items-end">
-        <div class="flex-1 bg-pm-card/70 backdrop-blur border border-pm-light/20 rounded-2xl overflow-hidden">
+        <div class="input-ring flex-1 bg-white border border-purple-200 rounded-2xl overflow-hidden flex items-end">
+
+          <!-- Emoji trigger: SVG smiley outline (watermark) -->
+          <button id="emoji-btn" onclick="toggleEmoji(event)"
+                  class="emoji-trigger flex-shrink-0 px-3 pb-[11px] select-none"
+                  title="Emojis">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+              <circle cx="9"  cy="9"  r="0.8" fill="currentColor" stroke="none"/>
+              <circle cx="15" cy="9"  r="0.8" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+
           <textarea id="msg-input"
             rows="1"
             placeholder="Digite sua mensagem..."
             onkeydown="handleKey(event)"
             oninput="autoResize(this)"
-            class="w-full bg-transparent text-white text-sm px-4 py-3 resize-none outline-none
-                   placeholder-pm-light/40 leading-relaxed"
-            style="max-height: 120px"></textarea>
+            class="flex-1 bg-transparent text-bia-ink text-sm px-1 py-3 resize-none outline-none
+                   placeholder-gray-400 leading-relaxed select-text"
+            style="max-height:120px"></textarea>
         </div>
-        <button id="send-btn"
-          onclick="sendMessage()"
-          class="send-btn bg-pm-accent hover:bg-red-600 active:scale-95 text-white
-                 rounded-2xl p-3 transition-all duration-150 flex-shrink-0">
+
+        <button id="send-btn" onclick="sendMessage()"
+                class="send-btn flex-shrink-0 bg-bia-base hover:bg-bia-deep active:scale-95 text-white
+                       rounded-2xl p-3 transition-all duration-150 shadow-md shadow-purple-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
@@ -119,15 +212,14 @@
         </button>
       </div>
 
-      <p class="text-center text-xs text-pm-light/35 mt-2">
+      <p class="text-center text-xs text-gray-400 mt-2 leading-tight">
         Bia é uma assistente virtual · Não substitui atendimento presencial
       </p>
     </div>
   </div>
 
-  <!-- ══ Script ═══════════════════════════════════════════════════════════════ -->
+  <!-- ══ SCRIPT ═══════════════════════════════════════════════════════════ -->
   <script>
-  // Identificador único da sessão, gerado uma vez por carregamento de página
   const SESSION_ID = (typeof crypto !== 'undefined' && crypto.randomUUID)
     ? crypto.randomUUID()
     : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -142,6 +234,14 @@
     'Não sei meu RA, como consigo?',
   ];
 
+  const EMOJIS = [
+    '😊','😄','😁','🥰','😍','🤗','😅',
+    '😢','😔','😰','😭','🥺','😤','😮',
+    '🙏','👍','👏','🙌','💪','✌️','🤝',
+    '❤️','💜','💛','🌟','⭐','✨','🎉',
+    '📚','✏️','🎓','🏫','💡','📝','🔍',
+  ];
+
   const WELCOME_MESSAGE =
     `Olá! Eu sou a **Bia**, sua assistente psicopedagógica da Passos Mágicos 🌟\n\n` +
     `Estou aqui para te apoiar na sua jornada de aprendizado, seja para entender seus indicadores, ` +
@@ -149,24 +249,51 @@
     `Para personalizar o atendimento, poderia me informar o seu **RA (Registro do Aluno)**? ` +
     `Você encontra esse número na carteirinha ou pode pedir à coordenação. 😊`;
 
-  // ── Estado ────────────────────────────────────────────────────────────────
   let isLoading = false;
 
-  // ── Init ──────────────────────────────────────────────────────────────────
+  // ── Init ───────────────────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
     appendBotMessage(WELCOME_MESSAGE, false);
     renderQuickPrompts();
+    buildEmojiPanel();
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#emoji-btn') && !e.target.closest('#emoji-panel')) {
+        document.getElementById('emoji-panel').classList.remove('open');
+      }
+    });
   });
 
-  // ── Quick prompts ─────────────────────────────────────────────────────────
+  // ── Emoji ──────────────────────────────────────────────────────────────
+  function buildEmojiPanel() {
+    document.getElementById('emoji-panel').innerHTML =
+      EMOJIS.map(e => `<button onclick="insertEmoji('${e}')">${e}</button>`).join('');
+  }
+
+  function toggleEmoji(e) {
+    e.stopPropagation();
+    document.getElementById('emoji-panel').classList.toggle('open');
+  }
+
+  function insertEmoji(emoji) {
+    const input = document.getElementById('msg-input');
+    const s = input.selectionStart ?? input.value.length;
+    const en = input.selectionEnd   ?? input.value.length;
+    input.value = input.value.slice(0, s) + emoji + input.value.slice(en);
+    input.selectionStart = input.selectionEnd = s + emoji.length;
+    input.focus();
+    autoResize(input);
+    document.getElementById('emoji-panel').classList.remove('open');
+  }
+
+  // ── Quick prompts ──────────────────────────────────────────────────────
   function renderQuickPrompts() {
-    const container = document.getElementById('quick-prompts');
-    container.innerHTML = QUICK_PROMPTS.map(p => `
+    document.getElementById('quick-prompts').innerHTML = QUICK_PROMPTS.map(p => `
       <button onclick="quickSend(this.dataset.text)"
         data-text="${p.replace(/"/g, '&quot;')}"
-        class="flex-shrink-0 text-xs bg-pm-card/60 border border-pm-light/20
-               text-pm-light px-3 py-1.5 rounded-full whitespace-nowrap
-               hover:border-pm-accent/60 hover:text-white transition-all duration-150">
+        class="flex-shrink-0 text-xs bg-bia-light text-bia-base border border-bia-mid/40
+               px-3 py-1.5 rounded-full whitespace-nowrap font-medium
+               hover:bg-bia-base hover:text-white hover:border-bia-base
+               transition-all duration-150">
         ${p.length > 38 ? p.slice(0, 36) + '…' : p}
       </button>`).join('');
   }
@@ -177,83 +304,66 @@
     sendMessage();
   }
 
-  // ── Enviar mensagem ───────────────────────────────────────────────────────
+  // ── Send ───────────────────────────────────────────────────────────────
   async function sendMessage() {
     if (isLoading) return;
-
     const input = document.getElementById('msg-input');
     const text  = input.value.trim();
     if (!text) return;
-
     input.value = '';
     input.style.height = 'auto';
     appendUserMessage(text);
     setLoading(true);
-
     const reply = await callAPI(text);
     setLoading(false);
     appendBotMessage(reply);
   }
 
-  // ── Chamada à API (proxy Vercel → n8n) ────────────────────────────────────
+  // ── API ────────────────────────────────────────────────────────────────
   async function callAPI(userMessage) {
     try {
-      const controller = new AbortController();
-      const timeout    = setTimeout(() => controller.abort(), 30_000);
-
-      const response = await fetch('/api/chat', {
+      const ctrl    = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 30_000);
+      const res = await fetch('/api/chat', {
         method:  'POST',
-        signal:  controller.signal,
+        signal:  ctrl.signal,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message:   userMessage,
-          sessionId: SESSION_ID,
-        }),
+        body:    JSON.stringify({ message: userMessage, sessionId: SESSION_ID }),
       });
-
       clearTimeout(timeout);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
       return data.reply || 'Desculpe, não recebi uma resposta válida. Pode tentar de novo?';
-
     } catch (err) {
       if (err.name === 'AbortError') {
         showToast('A resposta demorou demais. Tente novamente.');
         return 'A conexão demorou mais que o esperado. Pode tentar novamente? 😊';
       }
-      console.error('[Bia] Erro na chamada à API:', err);
+      console.error('[Bia]', err);
       return getFallback(userMessage);
     }
   }
 
-  // ── Fallback offline ──────────────────────────────────────────────────────
+  // ── Fallback ───────────────────────────────────────────────────────────
   function getFallback(text) {
-    const lower = text.toLowerCase();
-
-    if (lower.includes('inde'))
-      return '**INDE** é o Índice de Desenvolvimento Educacional, a nota geral que resume seu crescimento no programa (escala 0–10).\n\nEle considera seu desempenho, engajamento e bem-estar. Quanto maior, melhor está seu desenvolvimento! 🌟\n\n*Estou sem conexão no momento, mas posso responder mais perguntas assim que voltar.*';
-
-    if (lower.includes('pedra') || lower.includes('quartzo') || lower.includes('topázio'))
+    const t = text.toLowerCase();
+    if (t.includes('inde'))
+      return '**INDE** é o Índice de Desenvolvimento Educacional, a nota geral que resume seu crescimento no programa (escala 0–10).\n\nEle considera seu desempenho, engajamento e bem-estar. Quanto maior, melhor está seu desenvolvimento! 🌟\n\n*Estou sem conexão no momento, mas respondo mais perguntas assim que voltar.*';
+    if (t.includes('pedra') || t.includes('quartzo') || t.includes('topázio'))
       return 'As **Pedras** são a classificação pelo INDE:\n- 🔴 **Quartzo** (< 5,5): fase de atenção\n- 🟠 **Ágata** (5,5–7,0): em desenvolvimento\n- 🔵 **Ametista** (7,0–8,5): bom progresso\n- 🟢 **Topázio** (≥ 8,5): excelência!\n\n*Sem conexão agora. Tente novamente em instantes.*';
-
-    if (lower.includes('ra') || lower.includes('registro'))
+    if (t.includes('ra') || t.includes('registro'))
       return 'Seu **RA (Registro do Aluno)** é o número que identifica você no programa. Você encontra na sua carteirinha ou pode pedir à coordenação da Passos Mágicos! 😊\n\n*Estou com dificuldade de conexão agora. Tente novamente em breve.*';
-
     return 'Olá! Estou com dificuldade de conexão no momento. 😅\nPor favor, aguarde alguns instantes e tente novamente. Estou aqui para te ajudar!';
   }
 
-  // ── Renderização de mensagens ──────────────────────────────────────────────
+  // ── Messages ───────────────────────────────────────────────────────────
   function appendUserMessage(text) {
     const chat = document.getElementById('chat');
     const div  = document.createElement('div');
     div.className = 'flex justify-end animate-slide-up';
     div.innerHTML = `
-      <div class="user-bubble text-white text-sm px-4 py-2.5 rounded-2xl
-                  rounded-br-sm max-w-[82%] leading-relaxed">
+      <div class="user-bubble text-white text-sm px-4 py-2.5 rounded-2xl rounded-br-sm
+                  max-w-[82%] leading-relaxed">
         ${escapeHtml(text)}
       </div>`;
     chat.appendChild(div);
@@ -266,9 +376,8 @@
     div.className = 'flex justify-start' + (animate ? ' animate-slide-up' : '');
     div.innerHTML = `
       <div class="flex gap-2 max-w-[88%]">
-        <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 rounded-full object-cover border border-purple-400/40 mt-0.5 select-none">
-        <div class="bot-bubble text-white text-sm px-4 py-2.5 rounded-2xl
-                    rounded-bl-sm leading-relaxed markdown-content">
+        <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 mt-0.5 select-none">
+        <div class="bot-bubble text-bia-ink text-sm px-4 py-2.5 rounded-2xl rounded-bl-sm leading-relaxed md">
           ${renderMarkdown(text)}
         </div>
       </div>`;
@@ -282,13 +391,13 @@
     div.id        = 'typing-indicator';
     div.className = 'flex justify-start animate-fade-in';
     div.innerHTML = `
-      <div class="flex gap-2 items-start">
-        <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 rounded-full object-cover border border-purple-400/40 select-none">
-        <div class="bot-bubble px-4 py-3 rounded-2xl rounded-bl-sm">
-          <div class="flex gap-1 items-center">
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
+      <div class="flex gap-2 items-end">
+        <img src="/bia_avatar.png" alt="Bia" class="flex-shrink-0 w-8 h-8 select-none">
+        <div class="bot-bubble px-4 py-3.5 rounded-2xl rounded-bl-sm">
+          <div class="flex gap-1.5 items-center" style="height:16px">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
           </div>
         </div>
       </div>`;
@@ -301,30 +410,22 @@
     if (el) el.remove();
   }
 
-  // ── Estado de carregamento ────────────────────────────────────────────────
-  function setLoading(loading) {
-    isLoading = loading;
-    const btn   = document.getElementById('send-btn');
-    const input = document.getElementById('msg-input');
-    btn.disabled   = loading;
-    input.disabled = loading;
-    if (loading) { showTyping(); } else { removeTyping(); }
+  function setLoading(v) {
+    isLoading = v;
+    document.getElementById('send-btn').disabled  = v;
+    document.getElementById('msg-input').disabled = v;
+    if (v) showTyping(); else removeTyping();
   }
 
-  // ── Toast de erro ─────────────────────────────────────────────────────────
   function showToast(msg) {
-    const toast = document.getElementById('error-toast');
-    toast.textContent = msg;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 4000);
+    const el = document.getElementById('error-toast');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 4000);
   }
 
-  // ── Utilitários ───────────────────────────────────────────────────────────
   function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
   function autoResize(el) {
@@ -337,42 +438,28 @@
     setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 50);
   }
 
-  function escapeHtml(text) {
-    return text
-      .replace(/&/g,  '&amp;')
-      .replace(/</g,  '&lt;')
-      .replace(/>/g,  '&gt;')
-      .replace(/"/g,  '&quot;')
-      .replace(/\n/g, '<br>');
+  function escapeHtml(t) {
+    return t
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
   }
 
   function renderMarkdown(text) {
     return text
-      // Bold e itálico
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g,     '<em>$1</em>')
-      // Cabeçalhos
-      .replace(/^### (.*)/gm, '<h3>$1</h3>')
-      .replace(/^## (.*)/gm,  '<h3>$1</h3>')
-      // Tabelas
+      .replace(/^### (.*)/gm,   '<h3>$1</h3>')
+      .replace(/^## (.*)/gm,    '<h3>$1</h3>')
       .replace(/^\| (.*) \|$/gm, (_, row) => {
-        const cells = row.split(' | ').map(c =>
-          `<td class="px-2 py-0.5 border border-white/10 text-xs">${c}</td>`
-        ).join('');
+        const cells = row.split(' | ').map(c => `<td>${c}</td>`).join('');
         return `<tr>${cells}</tr>`;
       })
-      .replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m =>
-        `<table class="border-collapse my-1 w-full">${m}</table>`
-      )
-      // Listas não ordenadas
-      .replace(/^[-•] (.*)/gm, '<li>$1</li>')
-      // Listas ordenadas
+      .replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m => `<table>${m}</table>`)
+      .replace(/^[-•] (.*)/gm,  '<li>$1</li>')
       .replace(/^\d+\. (.*)/gm, '<li>$1</li>')
       .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
-      // Código inline
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      // Quebras de linha
-      .replace(/\n/g, '<br>');
+      .replace(/`(.*?)`/g,      '<code>$1</code>')
+      .replace(/\n/g,           '<br>');
   }
   </script>
 </body>
