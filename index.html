@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Bia · Assistente Psicopedagógica, Passos Mágicos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -34,10 +37,19 @@
   </script>
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    body { background-color: #F7F4FF; }
 
-    /* ── Layout ── */
-    .chat-area { height: calc(100dvh - 64px - 162px); }
+    /* ── Full-height flex layout — keyboard-safe ── */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      background-color: #F7F4FF;
+      overscroll-behavior: none;
+    }
 
     /* ── Bubbles ── */
     .user-bubble {
@@ -50,7 +62,7 @@
       box-shadow: 0 1px 4px rgba(124,58,237,0.07);
     }
 
-    /* ── Typing dots, keyframe definido aqui para funcionar fora do Tailwind ── */
+    /* ── Typing dots ── */
     @keyframes dotBounce {
       0%, 60%, 100% { transform: translateY(0);    opacity: 0.4; }
       30%           { transform: translateY(-6px); opacity: 1;   }
@@ -80,7 +92,7 @@
     .md table  { border-collapse: collapse; width: 100%; margin: 0.4rem 0; font-size: 0.78rem; }
     .md td     { padding: 4px 8px; border: 1px solid #E9D5FF; }
 
-    /* ── Input focus ── */
+    /* ── Input focus ring ── */
     .input-ring { transition: border-color 0.18s, box-shadow 0.18s; }
     .input-ring:focus-within { border-color: #A78BFA !important; box-shadow: 0 0 0 3px #EDE9FE; }
 
@@ -96,7 +108,7 @@
 
     /* ── Emoji panel ── */
     #emoji-panel {
-      display: none;           /* oculto por padrão */
+      display: none;
       flex-wrap: wrap;
       gap: 2px;
       background: #fff;
@@ -105,24 +117,31 @@
       padding: 8px;
       box-shadow: 0 -4px 16px rgba(124,58,237,0.1);
     }
-    #emoji-panel.open { display: flex; }   /* só aparece com .open */
+    #emoji-panel.open { display: flex; }
     #emoji-panel button {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       font-size: 1.15rem;
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       transition: background 0.1s;
       line-height: 1;
+      touch-action: manipulation;
     }
     #emoji-panel button:hover { background: #EDE9FE; }
 
-    /* ── Emoji trigger icon ── */
+    /* ── Emoji trigger ── */
     .emoji-trigger { color: #C4B5FD; transition: color 0.15s; }
     .emoji-trigger:hover { color: #7C3AED; }
+
+    /* ── Textarea: font-size 16px prevents iOS zoom-on-focus ── */
+    textarea {
+      font-size: 16px !important;
+      line-height: 1.45;
+    }
+
+    /* ── Buttons: fast tap ── */
+    button { touch-action: manipulation; }
 
     /* ── Misc ── */
     .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
@@ -131,10 +150,12 @@
     textarea:focus { outline: none; }
   </style>
 </head>
-<body class="min-h-screen font-sans">
+
+<!-- flex column fills 100dvh; header + footer shrink, main grows -->
+<body class="font-sans">
 
   <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-purple-100 shadow-sm"
+  <header class="flex-shrink-0 z-20 bg-white/95 backdrop-blur-sm border-b border-purple-100 shadow-sm"
           style="height:64px">
     <div class="max-w-2xl mx-auto h-full px-4 flex items-center gap-3">
       <div class="relative flex-shrink-0">
@@ -148,9 +169,13 @@
     </div>
   </header>
 
-  <!-- ══ CHAT ════════════════════════════════════════════════════════════ -->
-  <main class="max-w-2xl mx-auto px-4">
-    <div id="chat" class="chat-area overflow-y-auto flex flex-col gap-3 py-4 pr-1 select-text"></div>
+  <!-- ══ CHAT (scrollable, fills remaining space) ════════════════════════ -->
+  <main id="chat-scroll"
+        class="flex-1 min-h-0 overflow-y-auto"
+        style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+    <div class="max-w-2xl mx-auto px-4">
+      <div id="chat" class="flex flex-col gap-3 py-4 pr-1 select-text"></div>
+    </div>
   </main>
 
   <!-- ══ ERROR TOAST ══════════════════════════════════════════════════════ -->
@@ -160,12 +185,12 @@
               px-4 py-2 rounded-xl shadow-lg max-w-xs text-center">
   </div>
 
-  <!-- ══ INPUT BAR ════════════════════════════════════════════════════════ -->
-  <div class="fixed bottom-0 inset-x-0 z-10 bg-bia-bg border-t border-purple-100"
-       style="padding-bottom: env(safe-area-inset-bottom, 0px)">
+  <!-- ══ INPUT BAR (flex footer, keyboard-aware) ═════════════════════════ -->
+  <footer class="flex-shrink-0 z-10 bg-bia-bg border-t border-purple-100"
+          style="padding-bottom: env(safe-area-inset-bottom, 0px)">
     <div class="max-w-2xl mx-auto px-4 pt-2 pb-3 relative">
 
-      <!-- Emoji panel, absolute, flutua ACIMA da barra sem empurrar conteúdo -->
+      <!-- Emoji panel: absolute, floats above bar -->
       <div id="emoji-panel" class="absolute bottom-full left-4 right-4 mb-1 z-30
                                    overflow-y-auto" style="max-height:180px"></div>
 
@@ -176,7 +201,7 @@
       <div class="flex gap-2 items-end">
         <div class="input-ring flex-1 bg-white border border-purple-200 rounded-2xl overflow-hidden flex items-end">
 
-          <!-- Emoji trigger: SVG smiley outline (watermark) -->
+          <!-- Emoji trigger -->
           <button id="emoji-btn" onclick="toggleEmoji(event)"
                   class="emoji-trigger flex-shrink-0 px-3 pb-[11px] select-none"
                   title="Emojis">
@@ -195,7 +220,7 @@
             placeholder="Digite sua mensagem..."
             onkeydown="handleKey(event)"
             oninput="autoResize(this)"
-            class="flex-1 bg-transparent text-bia-ink text-sm px-1 py-3 resize-none outline-none
+            class="flex-1 bg-transparent text-bia-ink px-1 py-3 resize-none outline-none
                    placeholder-gray-400 leading-relaxed select-text"
             style="max-height:120px"></textarea>
         </div>
@@ -216,7 +241,7 @@
         Bia é uma assistente virtual · Não substitui atendimento presencial
       </p>
     </div>
-  </div>
+  </footer>
 
   <!-- ══ SCRIPT ═══════════════════════════════════════════════════════════ -->
   <script>
@@ -293,6 +318,7 @@
         class="flex-shrink-0 text-xs bg-bia-light text-bia-base border border-bia-mid/40
                px-3 py-1.5 rounded-full whitespace-nowrap font-medium
                hover:bg-bia-base hover:text-white hover:border-bia-base
+               active:bg-bia-deep active:text-white
                transition-all duration-150">
         ${p.length > 38 ? p.slice(0, 36) + '…' : p}
       </button>`).join('');
@@ -434,8 +460,8 @@
   }
 
   function scrollBottom() {
-    const chat = document.getElementById('chat');
-    setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 50);
+    const scroller = document.getElementById('chat-scroll');
+    setTimeout(() => { scroller.scrollTop = scroller.scrollHeight; }, 50);
   }
 
   function escapeHtml(t) {
